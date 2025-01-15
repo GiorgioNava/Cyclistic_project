@@ -50,4 +50,77 @@ This is how it looked after:
 
 ### SQL - BigQuery
 
+```
+-- 1 QUERY Usertype / Birthyear
+SELECT
+  birthyear,
+  2019 - birthyear as age,
+  SUM(CASE WHEN usertype = "Customer" THEN 1 ELSE 0 END) AS Customer_count,
+  SUM(CASE WHEN usertype = "Subscriber" THEN 1 ELSE 0 END) AS Subscriber_count
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1` 
+GROUP BY
+  birthyear
+ORDER BY 
+  birthyear;
+-- customer have an high count of "null"
+-- probably only mandatory data for subscribers
+-- implement strategy to request birth date of customers as well to target specific age group
 
+-- 2 QUERY avg tripduration / usertype
+SELECT
+  ROUND(AVG(CASE WHEN usertype = "Customer" THEN tripduration ELSE NULL END)/60, 0) AS Customer_avg_tripduration_m,
+  ROUND(AVG(CASE WHEN usertype = "Subscriber" THEN tripduration ELSE NULL END)/60, 0) AS Subscriber_avg_tripduration_m
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1` ;
+-- tripduration for customers is significantly higher
+-- assumption: 1. subscribers are more inclined to take more rides and as a consquence the avg reduces, 2. no incentive in taking long trips
+
+-- 3 QUERY number of trips / usertype
+SELECT 
+  COUNT(CASE WHEN usertype = "Customer" THEN trip_id ELSE NULL END) AS Customer_trips,
+  COUNT(CASE WHEN usertype = "Subscriber" THEN trip_id ELSE NULL END) AS Subscriber_trips,
+  COUNT(CASE WHEN usertype = "Customer" THEN trip_id ELSE NULL END) + 
+  COUNT(CASE WHEN usertype = "Subscriber" THEN trip_id ELSE NULL END) AS Total_trips
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1` ;
+-- number of trips of subscribers is significantly higher than customers
+-- This suggest high rate of conversion for usual customers
+
+-- 4 QUERY day_of_week / number of trips/ usertype
+SELECT
+  day_of_week,
+  COUNT(CASE WHEN usertype = "Customer" THEN trip_id ELSE NULL END) AS Customer_count,
+  COUNT(CASE WHEN usertype = "Subscriber" THEN trip_id ELSE NULL END) AS Subscriber_count
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1`
+GROUP BY
+  day_of_week
+ORDER BY
+  day_of_week;
+-- customers tend to ride more in weekends while subscribers in the weekday
+-- this can provide good insight to the marketing team to focus on weekends customer conversion
+
+-- 5 QUERY from&to_station_name / trip_id / usertype
+SELECT
+  from_station_name,
+  COUNT(CASE WHEN usertype = "Customer" THEN trip_id ELSE NULL END) AS Customer_count,
+  COUNT(CASE WHEN usertype = "Subscriber" THEN trip_id ELSE NULL END) AS Subscriber_count
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1`
+GROUP BY
+  from_station_name
+ORDER BY
+  Customer_count DESC;
+SELECT
+  to_station_name,
+  COUNT(CASE WHEN usertype = "Customer" THEN trip_id ELSE NULL END) AS Customer_count,
+  COUNT(CASE WHEN usertype = "Subscriber" THEN trip_id ELSE NULL END) AS Subscriber_count
+FROM 
+  `cyclistic-project-bike-sharing.Cyclistic_bike_sharing.Trips_2019_Q1`
+GROUP BY
+  to_station_name
+ORDER BY
+  Customer_count DESC;
+-- this query provide insight on where to focus whit marketing material as most traffic of customers is shown
+```
